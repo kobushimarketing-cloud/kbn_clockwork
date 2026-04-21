@@ -428,14 +428,16 @@ const el = {
    - 一般男性 → 「一般」(定価)
    - 一般女性 → 「半額」
    - VIP/スポンサー男性 → 「半額」
-   - VIP/スポンサー女性 → 「半額の半額」
-   仕様書 Section 7-1 の商品マスタと一致させる必要がある。
+   - VIP/スポンサー女性 → 「1/4」
+   UI 表示上のラベル。エアレジ側の商品マスタは「半額の半額」のままで OK
+   (データ連携はせず、スタッフが目視で判断する運用)。
+   仕様書 Section 7-1 の商品マスタ名は本タスクでは書き換えない。
    ============================================================ */
 function getPriceGroupName(member, gender) {
   if (member === 'general' && gender === 'male')   return '一般';
   if (member === 'general' && gender === 'female') return '半額';
   if (member === 'vip'     && gender === 'male')   return '半額';
-  if (member === 'vip'     && gender === 'female') return '半額の半額';
+  if (member === 'vip'     && gender === 'female') return '1/4';
   return null;
 }
 
@@ -573,7 +575,8 @@ function renderAirregi(ceilingMinutes) {
   if (hourSets > 0) {
     items.push(
       '<div class="airregi-item">' +
-        '1時間<span class="group-name">(' + groupName + ')</span> ' +
+        '<span class="group-name">【' + groupName + '】</span> ' +
+        '1時間 ' +
         '<span class="count">× ' + hourSets + '回</span>' +
       '</div>'
     );
@@ -581,7 +584,8 @@ function renderAirregi(ceilingMinutes) {
   if (tenMinSets > 0) {
     items.push(
       '<div class="airregi-item">' +
-        '10分<span class="group-name">(' + groupName + ')</span> ' +
+        '<span class="group-name">【' + groupName + '】</span> ' +
+        '10分 ' +
         '<span class="count">× ' + tenMinSets + '回</span>' +
       '</div>'
     );
