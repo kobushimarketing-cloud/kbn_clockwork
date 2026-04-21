@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="KOBUSHI ツール">
+<meta name="format-detection" content="telephone=no">
+<meta name="robots" content="noindex, nofollow, noarchive">
+<meta name="googlebot" content="noindex, nofollow">
+<title>🍺 KOBUSHI BEER NIGHT 店舗ツール</title>
+<style>
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html, body {
+  height: 100%;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic UI", "Meiryo", sans-serif;
+  background: #0e1410;
+  color: #e8e8e8;
+  min-height: 100vh;
+  padding: 24px 20px 48px;
+  -webkit-font-smoothing: antialiased;
+}
+
+.container {
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+header {
+  text-align: center;
+  padding: 32px 0 24px;
+  border-bottom: 1px solid #2a3530;
+  margin-bottom: 32px;
+}
+
+h1 {
+  font-size: 2.2rem;
+  font-weight: 700;
+  color: #d4a72c;
+  letter-spacing: 0.02em;
+  line-height: 1.2;
+}
+
+h2 {
+  font-size: 1.05rem;
+  font-weight: 400;
+  color: #9aa8a0;
+  margin-top: 8px;
+  letter-spacing: 0.05em;
+}
+
+.tool-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.tool-list li {
+  background: #162019;
+  border: 1px solid #2a3530;
+  border-radius: 12px;
+  transition: background 0.15s, border-color 0.15s, transform 0.1s;
+}
+
+.tool-list li:active {
+  transform: scale(0.99);
+}
+
+.tool-list a {
+  display: grid;
+  grid-template-columns: 64px 1fr;
+  grid-template-rows: auto auto;
+  column-gap: 20px;
+  align-items: center;
+  padding: 20px 24px;
+  text-decoration: none;
+  color: inherit;
+  border-radius: 12px;
+}
+
+.tool-list a:hover,
+.tool-list a:focus-visible {
+  background: #1d2a22;
+  border-color: #d4a72c;
+  outline: none;
+}
+
+.tool-list .icon {
+  grid-row: 1 / 3;
+  font-size: 2.6rem;
+  text-align: center;
+  line-height: 1;
+}
+
+.tool-list .title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #d4a72c;
+}
+
+.tool-list .desc {
+  font-size: 0.92rem;
+  color: #a8b5ac;
+  margin-top: 4px;
+  line-height: 1.5;
+}
+
+footer {
+  margin-top: 48px;
+  padding-top: 24px;
+  border-top: 1px solid #2a3530;
+  text-align: center;
+  color: #6a7870;
+  font-size: 0.8rem;
+  line-height: 1.6;
+}
+
+@media (max-width: 480px) {
+  body {
+    padding: 16px 14px 32px;
+  }
+  h1 {
+    font-size: 1.7rem;
+  }
+  h2 {
+    font-size: 0.95rem;
+  }
+  .tool-list a {
+    grid-template-columns: 52px 1fr;
+    column-gap: 16px;
+    padding: 16px 18px;
+  }
+  .tool-list .icon {
+    font-size: 2.1rem;
+  }
+  .tool-list .title {
+    font-size: 1.1rem;
+  }
+  .tool-list .desc {
+    font-size: 0.85rem;
+  }
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>🍺 KOBUSHI BEER NIGHT</h1>
+    <h2>店舗運営ツール</h2>
+  </header>
+
+  <ul class="tool-list">
+    <li>
+      <a href="time-calculator.html">
+        <span class="icon">⏱</span>
+        <span class="title">時間計算ツール</span>
+        <span class="desc">滞在時間から、エアレジで入力する商品・回数を自動計算</span>
+      </a>
+    </li>
+  </ul>
+
+  <footer>
+    kobushimarketing-cloud / kbn_clockwork<br>
+    社内ツール / noindex
+  </footer>
+</div>
+</body>
+</html>

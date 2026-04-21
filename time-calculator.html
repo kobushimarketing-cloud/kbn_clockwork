@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<!--
+  @file web/time-calculator.html
+  @description KOBUSHI BEER NIGHT 店舗向け時間計算ツール。
+               iPad Safari で動作し、伝票の開始時刻と現在時刻から滞在時間を計算し、
+               エアレジで入力すべき商品(1時間/10分)と回数を提示する。
+  @version 0.1.0 (Phase 2 / iPad UI)
+  @see docs/specification-v0.3.md Section 6-4 (営業中の会計フロー)
+-->
+<meta charset="UTF-8">
+<!-- iPad/iPhone でピンチズームを禁止し、レジ作業中の誤操作を防ぐ -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<!-- iOS のホーム画面追加時にスタンドアロン表示する(Safari の URL バーを隠す) -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="KOBUSHI 計算">
+<!-- 数字を電話番号としてリンク化されないようにする(時刻表示が誤動作するのを防ぐ) -->
+<meta name="format-detection" content="telephone=no">
+<!-- 検索エンジンにインデックスさせない(社内ツールのため URL を知っている人のみアクセス可) -->
+<meta name="robots" content="noindex, nofollow, noarchive">
+<meta name="googlebot" content="noindex, nofollow">
+<title>🍺 KOBUSHI BEER NIGHT 時間計算ツール</title>
+<style>
+/* ========================================
+   ベース
+   ======================================== */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent; /* iOS のタップ時の青枠を消す */
+}
+
+html, body {
+  /* システムフォントを使うことで Google Fonts 等の外部依存をゼロにし、オフラインでも体裁を保つ */
+  font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue",
+               "Hiragino Sans", "Hiragino Kaku Gothic ProN",
+               "Noto Sans JP", "Yu Gothic", Meiryo, sans-serif;
+  background: #0e1410; /* ダークグリーン寄りの黒、ビアナイトの落ち着いた雰囲気 */
+  color: #f3e9c6;       /* 黄金色寄りのオフホワイト */
+  min-height: 100vh;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  padding: 12px;
+  padding-bottom: 32px;
+}
+
+.container {
+  max-width: 720px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* ========================================
+   タイトル
+   ======================================== */
+.title {
+  text-align: center;
+  font-size: 1.6rem;
+  font-weight: bold;
+  color: #d4a72c; /* 黄金色 */
+  padding: 4px 0;
+  letter-spacing: 0.05em;
+}
+
+/* ========================================
+   カード(各セクションの枠)
+   ======================================== */
+.card {
+  background: #1a221d;
+  border: 1px solid #2d3a32;
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.card-label {
+  font-size: 0.95rem;
+  color: #8aa094;
+  margin-bottom: 8px;
+  font-weight: bold;
+}
+
+/* ========================================
+   現在時刻(視認性最優先)
+   ======================================== */
+.clock-card {
+  text-align: center;
+  background: #0a0f0c;
+  border-color: #d4a72c;
+}
+
+.clock {
+  font-family: "SF Mono", "Menlo", "Consolas", monospace;
+  font-size: 3.6rem;
+  font-weight: bold;
+  color: #d4a72c;
+  letter-spacing: 0.05em;
+  line-height: 1.1;
+}
+
+.clock-sub {
+  font-size: 0.85rem;
+  color: #6a7a70;
+  margin-top: 4px;
+}
+
+/* ========================================
+   開始時刻入力
+   ======================================== */
+.time-input-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.time-input {
+  width: 100px;
+  height: 80px;
+  font-size: 2.5rem;
+  font-family: "SF Mono", "Menlo", "Consolas", monospace;
+  text-align: center;
+  background: #0a0f0c;
+  color: #f3e9c6;
+  border: 2px solid #2d3a32;
+  border-radius: 10px;
+  font-weight: bold;
+}
+
+.time-input:focus {
+  outline: none;
+  border-color: #d4a72c;
+}
+
+.time-colon {
+  font-size: 2.5rem;
+  font-weight: bold;
+  color: #d4a72c;
+}
+
+/* ========================================
+   滞在時間表示
+   ======================================== */
+.stay-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px dashed #2d3a32;
+}
+
+.stay-line {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 1.4rem;
+}
+
+.stay-line .label {
+  color: #8aa094;
+  font-size: 1rem;
+}
+
+.stay-line .value {
+  font-family: "SF Mono", "Menlo", "Consolas", monospace;
+  color: #f3e9c6;
+  font-weight: bold;
+  font-size: 1.6rem;
+}
+
+.stay-line.ceiling .value {
+  color: #d4a72c;
+  font-size: 1.8rem;
+}
+
+.warning {
+  color: #ff6b6b;
+  font-size: 1.1rem;
+  text-align: center;
+  padding: 8px;
+}
+
+/* ========================================
+   選択ボタン群(会員種別・性別)
+   ======================================== */
+.btn-group {
+  display: flex;
+  gap: 10px;
+}
+
+.choice-btn {
+  flex: 1;
+  min-height: 64px;
+  font-size: 1.3rem;
+  font-weight: bold;
+  background: #2d3a32;       /* 未選択: グレー */
+  color: #8aa094;
+  border: 2px solid #2d3a32;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.1s, color 0.1s, border-color 0.1s;
+  font-family: inherit;
+}
+
+.choice-btn:active {
+  /* タップフィードバック: 押した瞬間に少し暗くなる */
+  background: #1f2925;
+}
+
+.choice-btn.selected {
+  /* 選択中: ビアナイトの黄金色を背景に、視認性を優先 */
+  background: #d4a72c;
+  color: #0e1410;
+  border-color: #d4a72c;
+}
+
+/* ========================================
+   エアレジ指示(一番目立たせる)
+   ======================================== */
+.airregi-card {
+  background: #1c2a20;
+  border-color: #d4a72c;
+  border-width: 2px;
+}
+
+.airregi-title {
+  text-align: center;
+  font-size: 1.2rem;
+  color: #d4a72c;
+  margin-bottom: 12px;
+  font-weight: bold;
+}
+
+.airregi-empty {
+  text-align: center;
+  color: #6a7a70;
+  font-size: 1.05rem;
+  padding: 20px 0;
+}
+
+.airregi-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.airregi-item {
+  font-size: 2.2rem;
+  font-weight: bold;
+  text-align: center;
+  color: #f3e9c6;
+  background: #0a0f0c;
+  padding: 14px 8px;
+  border-radius: 8px;
+  font-family: "SF Mono", "Menlo", "Consolas", monospace;
+}
+
+.airregi-item .group-name {
+  color: #d4a72c;
+  font-size: 1.6rem;
+}
+
+.airregi-item .count {
+  color: #ffffff;
+}
+
+/* ========================================
+   リセットボタン
+   ======================================== */
+.reset-btn {
+  width: 100%;
+  min-height: 60px;
+  font-size: 1.3rem;
+  font-weight: bold;
+  background: #3a2828;
+  color: #f3e9c6;
+  border: 2px solid #5a3838;
+  border-radius: 10px;
+  cursor: pointer;
+  font-family: inherit;
+  margin-top: 4px;
+}
+
+.reset-btn:active {
+  background: #5a3838;
+}
+
+/* ========================================
+   レスポンシブ: iPad 横向き / PC 用に余裕を持たせる
+   ======================================== */
+@media (min-width: 900px) {
+  .container {
+    max-width: 820px;
+  }
+  .clock {
+    font-size: 4.5rem;
+  }
+}
+
+/* iPhone 縦向きなど狭い画面: 文字を少し縮め、横スクロールが起きないようにする */
+@media (max-width: 380px) {
+  .title { font-size: 1.3rem; }
+  .clock { font-size: 2.8rem; }
+  .time-input { width: 84px; height: 70px; font-size: 2rem; }
+  .airregi-item { font-size: 1.7rem; }
+  .airregi-item .group-name { font-size: 1.3rem; }
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- タイトル -->
+  <div class="title">🍺 KOBUSHI BEER NIGHT 時間計算ツール</div>
+
+  <!-- 現在時刻 -->
+  <div class="card clock-card">
+    <div class="clock" id="clock">--:--:--</div>
+    <div class="clock-sub">現在時刻 (iPad 内蔵時計と同期)</div>
+  </div>
+
+  <!-- 開始時刻入力 -->
+  <div class="card">
+    <div class="card-label">開始時刻 (伝票の時刻を入力)</div>
+    <div class="time-input-row">
+      <input type="text"
+             id="startHour"
+             class="time-input"
+             inputmode="numeric"
+             pattern="[0-9]*"
+             maxlength="2"
+             placeholder="HH"
+             autocomplete="off">
+      <div class="time-colon">:</div>
+      <input type="text"
+             id="startMinute"
+             class="time-input"
+             inputmode="numeric"
+             pattern="[0-9]*"
+             maxlength="2"
+             placeholder="MM"
+             autocomplete="off">
+    </div>
+
+    <div class="stay-row">
+      <div class="stay-line">
+        <span class="label">⏱ 滞在時間</span>
+        <span class="value" id="stayDuration">—</span>
+      </div>
+      <div class="stay-line ceiling">
+        <span class="label">⏱ 切り上げ (10分単位)</span>
+        <span class="value" id="ceilingDuration">—</span>
+      </div>
+      <div class="warning" id="warning" style="display:none;"></div>
+    </div>
+  </div>
+
+  <!-- 会員種別 -->
+  <div class="card">
+    <div class="card-label">会員種別</div>
+    <div class="btn-group">
+      <button type="button" class="choice-btn" data-group="member" data-value="general">一般</button>
+      <button type="button" class="choice-btn" data-group="member" data-value="vip">スポンサー・VIP</button>
+    </div>
+  </div>
+
+  <!-- 性別 -->
+  <div class="card">
+    <div class="card-label">性別</div>
+    <div class="btn-group">
+      <button type="button" class="choice-btn" data-group="gender" data-value="male">男性</button>
+      <button type="button" class="choice-btn" data-group="gender" data-value="female">女性</button>
+    </div>
+  </div>
+
+  <!-- エアレジ指示 -->
+  <div class="card airregi-card">
+    <div class="airregi-title">🎯 エアレジで入力してください</div>
+    <div id="airregiResult">
+      <div class="airregi-empty">会員種別と性別を選択してください</div>
+    </div>
+  </div>
+
+  <!-- リセット -->
+  <button type="button" class="reset-btn" id="resetBtn">🔄 リセット</button>
+
+</div>
+
+<script>
+'use strict';
+
+/* ============================================================
+   状態
+   - 入力欄(DOM)とは別に、選択中の会員種別・性別を保持する。
+   - 現在時刻は1秒ごとに更新するが、リセットしても止めない。
+   ============================================================ */
+const state = {
+  member: null,  // 'general' | 'vip' | null
+  gender: null   // 'male' | 'female' | null
+};
+
+/* ============================================================
+   DOM 参照(初回取得して使い回す)
+   ============================================================ */
+const el = {
+  clock: document.getElementById('clock'),
+  startHour: document.getElementById('startHour'),
+  startMinute: document.getElementById('startMinute'),
+  stayDuration: document.getElementById('stayDuration'),
+  ceilingDuration: document.getElementById('ceilingDuration'),
+  warning: document.getElementById('warning'),
+  airregiResult: document.getElementById('airregiResult'),
+  resetBtn: document.getElementById('resetBtn'),
+  choiceBtns: document.querySelectorAll('.choice-btn')
+};
+
+/* ============================================================
+   料金グループ判定
+   - 一般男性 → 「一般」(定価)
+   - 一般女性 → 「半額」
+   - VIP/スポンサー男性 → 「半額」
+   - VIP/スポンサー女性 → 「半額の半額」
+   仕様書 Section 7-1 の商品マスタと一致させる必要がある。
+   ============================================================ */
+function getPriceGroupName(member, gender) {
+  if (member === 'general' && gender === 'male')   return '一般';
+  if (member === 'general' && gender === 'female') return '半額';
+  if (member === 'vip'     && gender === 'male')   return '半額';
+  if (member === 'vip'     && gender === 'female') return '半額の半額';
+  return null;
+}
+
+/* ============================================================
+   2桁ゼロ埋め
+   ============================================================ */
+function pad2(n) {
+  return n < 10 ? '0' + n : '' + n;
+}
+
+/* ============================================================
+   現在時刻更新(1秒ごと)
+   - エアレジも iPad の内蔵時計を使うので、ここも new Date() を使う。
+     これで「アプリ側とエアレジ側で時刻が食い違う」事故を避ける。
+   ============================================================ */
+function updateClock() {
+  const now = new Date();
+  el.clock.textContent =
+    pad2(now.getHours()) + ':' +
+    pad2(now.getMinutes()) + ':' +
+    pad2(now.getSeconds());
+  updateStayDuration(now);
+}
+
+/* ============================================================
+   滞在時間計算
+   - 開始時刻が未入力なら表示しない。
+   - 翌日にまたがる(差が-12時間を超えるマイナス)場合は翌日扱いとして +24時間する。
+     例: 開始 23:00 / 現在 01:00 → -22時間 → +24 = 2時間
+   - 差が +12時間を超える場合は「未来時刻」と判定して警告表示。
+   ============================================================ */
+function updateStayDuration(now) {
+  const hStr = el.startHour.value.trim();
+  const mStr = el.startMinute.value.trim();
+
+  // 両方とも空なら表示クリア(片方だけ入力中はまだ計算しない)
+  if (hStr === '' || mStr === '') {
+    el.stayDuration.textContent = '—';
+    el.ceilingDuration.textContent = '—';
+    el.warning.style.display = 'none';
+    renderAirregi(null);
+    return;
+  }
+
+  const startHour = parseInt(hStr, 10);
+  const startMinute = parseInt(mStr, 10);
+
+  // バリデーション(0-23 / 0-59 の範囲)。範囲外は警告。
+  if (isNaN(startHour) || isNaN(startMinute) ||
+      startHour < 0 || startHour > 23 ||
+      startMinute < 0 || startMinute > 59) {
+    el.stayDuration.textContent = '—';
+    el.ceilingDuration.textContent = '—';
+    el.warning.style.display = 'block';
+    el.warning.textContent = '⚠ 時刻が不正です (時: 0-23, 分: 0-59)';
+    renderAirregi(null);
+    return;
+  }
+
+  // 現在の年月日に開始時刻を当てた Date を作る
+  const start = new Date(
+    now.getFullYear(), now.getMonth(), now.getDate(),
+    startHour, startMinute, 0, 0
+  );
+
+  // 差分(秒)を計算
+  let diffSec = Math.floor((now.getTime() - start.getTime()) / 1000);
+
+  // 翌日跨ぎ判定: 差が -12時間 より小さければ「昨日始まったお客様」とみなして +24h
+  // (例: 23:00 → 01:00 は +24h して 2時間として扱う)
+  if (diffSec < -12 * 3600) {
+    diffSec += 24 * 3600;
+  }
+
+  // それでもマイナス = 開始時刻が未来。警告。
+  if (diffSec < 0) {
+    el.stayDuration.textContent = '—';
+    el.ceilingDuration.textContent = '—';
+    el.warning.style.display = 'block';
+    el.warning.textContent = '⚠ 開始時刻が未来です';
+    renderAirregi(null);
+    return;
+  }
+
+  el.warning.style.display = 'none';
+
+  // 滞在時間を時:分:秒に分解
+  const stayHours = Math.floor(diffSec / 3600);
+  const stayMinutes = Math.floor((diffSec % 3600) / 60);
+  const staySeconds = diffSec % 60;
+  el.stayDuration.textContent =
+    stayHours + '時間' + stayMinutes + '分' + staySeconds + '秒';
+
+  // 切り上げ(10分単位)
+  // 仕様: Math.ceil(滞在分数 / 10) * 10
+  // 注意: 「分数」は秒を含めて計算する(3時間47分23秒 → 227.38分 → 230分)
+  const stayTotalMinutesFloat = diffSec / 60;
+  const ceilingMinutes = Math.ceil(stayTotalMinutesFloat / 10) * 10;
+  const ceilingHours = Math.floor(ceilingMinutes / 60);
+  const ceilingRemainMin = ceilingMinutes % 60;
+  el.ceilingDuration.textContent =
+    ceilingHours + '時間' + ceilingRemainMin + '分';
+
+  // エアレジ指示を更新
+  renderAirregi(ceilingMinutes);
+}
+
+/* ============================================================
+   エアレジ指示の描画
+   - ceilingMinutes が null の場合は計算不能 → 入力促し or 空表示
+   - 会員種別 or 性別が未選択の場合 → 入力促し
+   - 「0回」のセットは表示しない(押すボタンが無いので画面に出す意味がない)
+   ============================================================ */
+function renderAirregi(ceilingMinutes) {
+  // 計算前(時刻未入力)
+  if (ceilingMinutes === null || ceilingMinutes === undefined) {
+    el.airregiResult.innerHTML =
+      '<div class="airregi-empty">開始時刻を入力してください</div>';
+    return;
+  }
+
+  // 会員種別/性別 未選択
+  const groupName = getPriceGroupName(state.member, state.gender);
+  if (!groupName) {
+    el.airregiResult.innerHTML =
+      '<div class="airregi-empty">会員種別と性別を選択してください</div>';
+    return;
+  }
+
+  // 1時間と10分に分解
+  const hourSets = Math.floor(ceilingMinutes / 60);
+  const tenMinSets = (ceilingMinutes % 60) / 10;
+
+  const items = [];
+  if (hourSets > 0) {
+    items.push(
+      '<div class="airregi-item">' +
+        '1時間<span class="group-name">(' + groupName + ')</span> ' +
+        '<span class="count">× ' + hourSets + '回</span>' +
+      '</div>'
+    );
+  }
+  if (tenMinSets > 0) {
+    items.push(
+      '<div class="airregi-item">' +
+        '10分<span class="group-name">(' + groupName + ')</span> ' +
+        '<span class="count">× ' + tenMinSets + '回</span>' +
+      '</div>'
+    );
+  }
+
+  // 両方0(=滞在0分など)は基本ありえないが、念のため
+  if (items.length === 0) {
+    el.airregiResult.innerHTML =
+      '<div class="airregi-empty">滞在時間が 0 分です</div>';
+    return;
+  }
+
+  el.airregiResult.innerHTML = '<div class="airregi-list">' + items.join('') + '</div>';
+}
+
+/* ============================================================
+   選択ボタン(会員種別・性別)のクリックハンドラ
+   - 同じグループの他のボタンを未選択に戻し、自分を選択状態にする。
+   ============================================================ */
+el.choiceBtns.forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    const group = btn.dataset.group;
+    const value = btn.dataset.value;
+
+    // 同グループのボタンを全て未選択にしてから、自分だけ選択
+    el.choiceBtns.forEach(function(other) {
+      if (other.dataset.group === group) {
+        other.classList.remove('selected');
+      }
+    });
+    btn.classList.add('selected');
+    state[group] = value;
+
+    // 即座にエアレジ表示を更新(時刻計算もまとめて再走)
+    updateClock();
+  });
+});
+
+/* ============================================================
+   時刻入力欄のイベント
+   - 入力中もリアルタイムで滞在時間を更新したい。
+   - 数値以外の文字は弾く(iOS の inputmode="numeric" でも貼り付け等で混入しうる)。
+   ============================================================ */
+function sanitizeNumericInput(inputEl) {
+  const cleaned = inputEl.value.replace(/[^0-9]/g, '');
+  if (cleaned !== inputEl.value) {
+    inputEl.value = cleaned;
+  }
+}
+
+[el.startHour, el.startMinute].forEach(function(input) {
+  input.addEventListener('input', function() {
+    sanitizeNumericInput(input);
+    updateClock();
+  });
+});
+
+// 時の欄で2桁入力したら自動で分の欄にフォーカス移動(レジ作業の手数を減らす)
+el.startHour.addEventListener('input', function() {
+  if (el.startHour.value.length === 2) {
+    el.startMinute.focus();
+    el.startMinute.select();
+  }
+});
+
+/* ============================================================
+   リセット
+   - 入力・選択を全クリア。現在時刻の表示は維持(秒タイマーは止めない)。
+   ============================================================ */
+el.resetBtn.addEventListener('click', function() {
+  el.startHour.value = '';
+  el.startMinute.value = '';
+  state.member = null;
+  state.gender = null;
+  el.choiceBtns.forEach(function(btn) {
+    btn.classList.remove('selected');
+  });
+  el.warning.style.display = 'none';
+  el.stayDuration.textContent = '—';
+  el.ceilingDuration.textContent = '—';
+  renderAirregi(null);
+  // フォーカスは時の欄に戻しておく(次のお客様の入力をすぐ始められるように)
+  el.startHour.focus();
+});
+
+/* ============================================================
+   起動
+   - 現在時刻を即座に1回描画してから1秒タイマーを開始。
+   ============================================================ */
+updateClock();
+setInterval(updateClock, 1000);
+
+</script>
+</body>
+</html>
