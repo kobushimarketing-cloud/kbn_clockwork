@@ -6,7 +6,7 @@
 <meta name="robots" content="noindex, nofollow, noarchive">
 <meta name="googlebot" content="noindex, nofollow">
 <meta property="og:title" content="KOBUSHI BEER NIGHT VIP 会員権 | お申込み・利用規約">
-<meta property="og:image" content="../brand/kobushi-beer-night-logo.png">
+<meta property="og:image" content="../brand/vip-card-image.jpg">
 <title>KOBUSHI BEER NIGHT VIP 会員権 | お申込み・利用規約</title>
 <link rel="apple-touch-icon" sizes="180x180" href="../apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="32x32" href="../favicon-32.png">
@@ -77,12 +77,26 @@ section {
 
 .brand-header {
   text-align: center;
-  margin: 16px 0 24px;
+  margin: 0 0 20px;
+  padding: 0;
 }
 .brand-logo {
   max-width: 100%;
+  width: 100%;
   height: auto;
-  max-height: 120px;
+  max-height: 400px;
+  display: block;
+  margin: 0 auto 16px;
+  border-radius: 0;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+}
+.brand-subtitle {
+  font-size: 16px;
+  color: var(--brand-red);
+  margin: 0;
+  text-align: center;
+  font-weight: normal;
+  letter-spacing: 0.1em;
 }
 
 .price-main {
@@ -223,7 +237,12 @@ footer a { color: var(--text-secondary); text-decoration: underline; }
   h3 { font-size: 10.5pt; color: var(--brand-red); page-break-after: avoid; }
 
   .brand-header { margin: 0 0 4mm; }
-  .brand-logo { max-height: 25mm; }
+  .brand-logo {
+    max-height: 50mm;
+    box-shadow: none;
+    width: auto;
+  }
+  .brand-subtitle { font-size: 11pt; }
 
   .price-main { font-size: 20pt; margin: 2mm 0; }
   .price-sub { font-size: 9pt; }
@@ -293,14 +312,16 @@ footer a { color: var(--text-secondary); text-decoration: underline; }
   .price-main { font-size: 30px; }
   .apply-qr { width: 180px; height: 180px; }
   .apply-text { font-size: 17px; padding: 14px 20px; }
+  .brand-logo { max-height: 280px; }
+  .brand-subtitle { font-size: 14px; }
 }
 </style>
 </head>
 <body>
 
 <header class="brand-header">
-  <img src="../brand/kobushi-beer-night-logo.png" alt="KOBUSHI BEER NIGHT" class="brand-logo">
-  <h1>VIP 会員権</h1>
+  <img src="../brand/vip-card-image.jpg" alt="KOBUSHI BEER NIGHT VIP MEMBERS" class="brand-logo">
+  <h1 class="brand-subtitle">月額会員プログラム</h1>
 </header>
 
 <section>
