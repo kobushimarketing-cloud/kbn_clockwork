@@ -200,6 +200,34 @@ dl.business-info dd a { color: var(--brand-red); }
 }
 .portal-link:hover { background: #333; }
 
+.shop-links {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.shop-link {
+  display: block;
+  background: var(--brand-red);
+  color: white;
+  padding: 13px 18px;
+  border-radius: 8px;
+  text-decoration: none;
+  font-size: 15px;
+  font-weight: bold;
+  text-align: center;
+  letter-spacing: 0.03em;
+  box-shadow: 0 2px 8px rgba(139, 35, 50, 0.2);
+  transition: transform 0.2s ease;
+}
+.shop-link:hover { transform: scale(1.02); }
+.shop-link .shop-link-sub {
+  display: block;
+  font-size: 12px;
+  font-weight: normal;
+  opacity: 0.85;
+  margin-top: 2px;
+}
+
 footer {
   text-align: center;
   color: var(--text-secondary);
@@ -325,6 +353,20 @@ footer a { color: var(--text-secondary); text-decoration: underline; }
 </header>
 
 <section>
+  <h2>🍺 KOBUSHI BEER NIGHT について</h2>
+  <div class="shop-links">
+    <a href="https://kobushi.beer/snack" class="shop-link" target="_blank" rel="noopener">
+      KOBUSHI BEER NIGHT の情報
+      <span class="shop-link-sub">お店の詳細・メニューはこちら</span>
+    </a>
+    <a href="https://share.google/gOxEPiNLAxuozqB7r" class="shop-link" target="_blank" rel="noopener">
+      KOBUSHI BEER NIGHT へのアクセス
+      <span class="shop-link-sub">地図・道順はこちら</span>
+    </a>
+  </div>
+</section>
+
+<section>
   <h2>💎 VIP 会員特典</h2>
 
   <h3>【飲み放題プラン】会員は半額</h3>
@@ -341,7 +383,7 @@ footer a { color: var(--text-secondary); text-decoration: underline; }
   <p>ボトルメニュー(目安価格、詳細は店頭にてご案内):</p>
   <ul>
     <li>ニッカフロンティア / スーパーニッカ / ジャックダニエル</li>
-    <li>シーバスリーガル / ラフロイグ / 与一</li>
+    <li>シーバスリーガル / ラフロイグ / 余市</li>
     <li>白州 / 山崎 / ボウモア</li>
     <li>グレンフィディック / バランタイン など</li>
   </ul>
