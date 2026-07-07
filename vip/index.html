@@ -168,6 +168,21 @@ dl.business-info dd a { color: var(--brand-red); }
   letter-spacing: 0.04em;
 }
 
+.apply-text-ladies {
+  background: var(--brand-pink);
+  color: white;
+  font-size: 17px;
+  box-shadow: 0 3px 10px rgba(244, 122, 163, 0.35);
+}
+.apply-text-sub {
+  display: block;
+  font-size: 12px;
+  font-weight: normal;
+  opacity: 0.9;
+  margin-top: 4px;
+  letter-spacing: 0.06em;
+}
+
 .apply-qr {
   display: block;
   margin: 0 auto;
@@ -443,12 +458,19 @@ footer a { color: var(--text-secondary); text-decoration: underline; }
   </a>
 
   <p class="apply-hint">スマホの方は QR コードから、PC の方は上のボタンからお申込みください</p>
+
+  <a href="https://buy.stripe.com/5kQfZj7OSb85esogT557W01" class="apply-link apply-link-ladies disabled" target="_blank" rel="noopener">
+    <div class="apply-text apply-text-ladies">
+      VIP レディースプラン ¥5,500/月(税込) お申込みはこちら
+      <span class="apply-text-sub">女性限定</span>
+    </div>
+  </a>
 </section>
 
 <section>
   <h2>🔧 登録後の設定・解約</h2>
   <p>登録後のお支払い方法変更・解約は、Stripe のカスタマーポータルから行えます。</p>
-  <a href="https://billing.stripe.com/p/login/XXXXX" class="portal-link" target="_blank" rel="noopener">
+  <a href="https://billing.stripe.com/p/login/4gM7sN9X0b851FCbyL57W00" class="portal-link" target="_blank" rel="noopener">
     🔧 カスタマーポータルへ
   </a>
 </section>
@@ -461,12 +483,14 @@ footer a { color: var(--text-secondary); text-decoration: underline; }
 <script>
   (function() {
     var checkbox = document.getElementById('agreeCheck');
-    var link = document.getElementById('applyLink');
-    if (!checkbox || !link) return;
+    var links = document.querySelectorAll('.apply-link');
+    if (!checkbox || !links.length) return;
 
     function update() {
-      if (checkbox.checked) link.classList.remove('disabled');
-      else link.classList.add('disabled');
+      for (var i = 0; i < links.length; i++) {
+        if (checkbox.checked) links[i].classList.remove('disabled');
+        else links[i].classList.add('disabled');
+      }
     }
     checkbox.addEventListener('change', update);
     update();
